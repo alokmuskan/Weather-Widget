@@ -5,15 +5,17 @@ import { useState } from 'react';
 
 export default function SearchBox({updateInfo}) {
     let [city, setCity] = useState("");
+    let [error, setError] = useState(false);
 
     const API_URL = "http://api.openweathermap.org/data/2.5/weather";
     const API_KEY = "5c9b257ede27e4138f7654f28ec4ca19";
 
     let getWeatherInfo = async () => {
-        let response = await fetch(`${API_URL}?q=${city}&limit=${5}&appid=${API_KEY}&units=metric`);
-        let jsonResponse = await response.json();
-        // console.log(jsonResponse);
-        let result = {
+        try {
+            let response = await fetch(`${API_URL}?q=${city}&limit=${5}&appid=${API_KEY}&units=metric`);
+            let jsonResponse = await response.json();
+            console.log(jsonResponse);
+            let result = {
             city: city,
             temp: jsonResponse.main.temp,
             tempMin: jsonResponse.main.temp_min,
@@ -21,9 +23,13 @@ export default function SearchBox({updateInfo}) {
             humidity: jsonResponse.main.humidity,
             feelsLike: jsonResponse.main.feels_like,
             weather: jsonResponse.weather[0].description,
-        };
-        console.log(result);
-        return result;
+            };
+            console.log(result);
+            return result;
+            
+        } catch(err) {
+            throw err; 
+        }
     };
 
 
@@ -32,11 +38,15 @@ export default function SearchBox({updateInfo}) {
     };
 
     let handleSubmit = async (evt) => {
-        evt.preventDefault();
-        console.log(city);
-        setCity("");
-        let newInfo = await getWeatherInfo();
-        updateInfo(newInfo);
+        try {
+            evt.preventDefault();
+            console.log(city);
+            setCity("");
+            let newInfo = await getWeatherInfo();
+            updateInfo(newInfo);
+        } catch(err) {
+            setError(true);
+        }
     };
 
     return (
@@ -56,6 +66,7 @@ export default function SearchBox({updateInfo}) {
                 type="submit">
                   Search
                 </Button>
+                {error && <p style={{color: "red"}}>No such place exists!</p>}
             </form>
         </div>
     );
